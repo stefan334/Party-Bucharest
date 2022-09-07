@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <!--meta-->
+    <meta name="description" content="Cele mai fresh haine de vara sau de iarna. Hanorace, bluze, tricouri.">
+    <meta name="keywords" content="haine, NULL, oferta, imbracaminte">
+
+    <%- include("../fragmente/head.ejs") %>
+        <link rel="stylesheet" href="/Resources/Css/femei.css">
+
+        <script type="text/javascript" src=/Resources/js/produse.js></script>
+        <!--3-->
+
+</head>
+
+<body>
+
+    <!--7-->
+    <%- include("../fragmente/header.ejs") %>
+
+
+        <main>
+            <a id="top-button" href="#">
+                <div>&#5123;<span class="tooltip">Go to top</span></div>
+            </a>
+            <div class="mainfemei">
+
+                <section class="column1">
+                    <img src="/Resources/Images/background_femei.jpg" alt="clothes">
+
+                </section>
+                <script>
+                    window.onload = function() {
+
+                        var button = document.getElementsByClassName("filterButton");
+                        console.log(button);
+                        button[0].onclick = function() {
+                            console.log("a mers");
+                            var articole = document.getElementsByClassName("produs");
+
+                            var checkImport = document.getElementsByClassName("isImported");
+                            var checkNotImport = document.getElementsByClassName("isNotImported");
+                            var text = document.getElementsByClassName("search")[0].value;
+
+
+                            var regex = '\\b';
+                            regex += text;
+                            regex += '\\b';
+
+
+                            var textarea = document.getElementsByClassName("textarea")[0].value;
+
+
+                            console.log(checkImport[0].checked);
+                            for (let articol of articole) {
+                                articol.style.display = "none";
+                                console.log(articol.getElementsByClassName("val-import")[0].innerHTML === 'true');
+                                if (checkImport[0].checked) {
+                                    if (articol.getElementsByClassName("val-import")[0].innerHTML === 'true') {
+                                        articol.style.display = "block";
+
+                                    }
+                                }
+                                if (checkNotImport[0].checked) {
+                                    if (!(articol.getElementsByClassName("val-import")[0].innerHTML === 'true')) {
+                                        articol.style.display = "block";
+
+                                    }
+                                }
+                                if (checkImport[0].checked && checkNotImport[0].checked) {
+                                    articol.style.display = "block";
+                                }
+
+                                for (let articol of articole) {
+                                    if (text) {
+                                        if (RegExp(regex, 'i').test(articol.getElementsByClassName("val-descriere")[0].innerHTML.toLowerCase())) {
+
+                                        } else {
+                                            articol.style.display = "none";
+                                        }
+                                    }
+                                }
+                                if (textarea) {
+                                    if (!(articol.getElementsByClassName("val-nume")[0].innerHTML.toLowerCase().includes(textarea))) {
+                                        articol.style.display = "none";
+                                    }
+                                }
+                            }
+                        }
+
+                        button[1].onclick = function() {
+                            var articole = document.getElementsByClassName("produs");
+                            var checkImport = document.getElementsByClassName("isImported")[0];
+                            var checkNotImport = document.getElementsByClassName("isNotImported")[0];
+                            var text = document.getElementsByClassName("search")[0];
+                            var textarea = document.getElementsByClassName("textarea")[0];
+                            checkImport.checked = true;
+                            checkNotImport.checked = true;
+                            text.value = '';
+                            textarea.value = '';
+                            for (let articol of articole) {
+                                articol.style.display = "block";
+                            }
+
+                        }
+                    }
+                </script>
+
+
+
+
+                <div class="content">
+                    <h2>Femei</h2>
+
+                    <div class="inputs">
+                        <label for="search">Descriere Produs: </label>
+                        <input class="search" type="text">
+
+                        <label for="range">Pret pana la: </label>
+                        <input class="range" type="range" step="10" min="50" max="400" value="400">
+
+                        <label for="radiogroup">Marimea: </label>
+                        <div class="radiogroup">
+                            <input type="radio" id="choice1" name="marime" value="S">
+                            <label for="choice1">S</label>
+
+                            <input type="radio" id="choice2" name="marime" value="M">
+                            <label for="choice2">M</label>
+
+                            <input type="radio" id="choice3" name="marime" value="L">
+                            <label for="choice3">L</label>
+
+                            <input type="radio" id="choice4" name="marime" value="none" checked>
+                            <label for="choice4">none</label>
+                        </div>
+                        <label class="checkedGroup">
+                           <p>Este Importat: </p>
+                        </label>
+
+                        <label class="checkLabel" for="isImported">Da </label>
+                        <input class="isImported" name="gr_chck" type="checkbox" checked value="true">
+
+                        <label class="checkLabel" for="isNotImported">Nu </label>
+                        <input class="isNotImported" name="gr_chck" type="checkbox" checked value="true">
+
+                        <label for="textarea">Nume Produs:</label>
+                        <textarea class="textarea"></textarea>
+
+                        <label for="selectSimplu">Categoria: </label>
+                        <select class="selectSimplu">
+                            <option value="1" selected=""></option>
+                            <option value="2">Hanorace Si Geci</option>
+                            <option value="3">Tricouri Si Maieuri</option>
+                            <option value="4">Bluze Si Pulovere</option>
+                            <option value="5">Accesorii</option>
+                            <option value="5">Pantaloni</option>
+                            <option value="5">Rochii</option>
+                        </select>
+
+                        <!-- <select id="i_sel_multiplu" multiple="" size="5">
+                            <option value="1">1</option>
+                            <option value="2" >2</option>
+                            <option value="3">3</option>
+                            <option value="4" selected="">4</option>
+                            <option value="5">5</option>
+                        </select> -->
+
+                        <button class="filterButton">Filtreaza</button>
+                        <button class="filterButton">Reseteaza</button>
+
+
+                    </div>
+
+                    <div class="grid-produse">
+                        <% for(let prod of locals.produse) { %>
+                            <article class="produs">
+                                <h3 class="nume"><a href="/femei/<%-prod.id%>"><span class = "val-nume"><%-prod.name%></span></a></h3>
+                                <div class="info-prod">
+                                    <p class="pret">Pret: <span class="val-pret"><%-prod.price%></span> RON</p>
+                                    <p class="dimensiune">Marime: <span class="val-dimensiune"><%-prod.size%></span></p>
+                                </div>
+                                <p class="categorie">Categorie: <span class=val-categorie><%- prod.category%></span></p>
+                                <figure>
+                                    <a href="/femei/<%-prod.id %>"><img src="/Resources/Images/Products/Femei/<%-prod.imag%>" alt=""></a>
+                                </figure>
+                                <p class="descriere">Descriere: <span class=val-descriere><%- prod.description%></span></p>
+                                <p class="imported">Este importat: <span class=val-import><%- prod.is_imported%></span></p>
+                                <label for="cantitate">Cantitate:</label>
+                                <input type="number" id="cantitate" name="cantitate" step="1" min=1 default=1>
+                                <label class="selecteaza-cos">
+                                    Selecteaza: <br>
+                                    <input type="checkbox" class= "select-cos" value="<%-prod.id%>" autocomplete="off">
+                                </label>
+
+                            </article>
+
+                            <%}%>
+
+
+                    </div>
+
+                </div>
+
+                <br>
+
+
+            </div>
+        </main>
+
+        <%- include("../fragmente/footer.ejs") %>
+
+
+</body>
+
+
+
+</html>
