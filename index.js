@@ -36,7 +36,7 @@ app.use(["/contact"], express.urlencoded({ extended: true }));
 
 //crearea sesiunii (obiectul de tip request capata proprietatea session si putem folosi req.session)
 app.use(session({
-    secret: 'abcdefg', //folosit de express session pentru criptarea id-ului de sesiune
+    secret: 'ab12xzcde23fxzcg', //folosit de express session pentru criptarea id-ului de sesiune
     resave: true,
     saveUninitialized: false
 }));
@@ -111,25 +111,7 @@ app.use(function(req, res, next) {
         }
     } else {
 
-        //nu mai folosesc baza de date fiindca e prea lenta
-        //var queryIp=`select ip, data_accesare from accesari where (now() - data_accesare < interval '00:00:05' ) and ip='${req.ip}' and pagina='${req.url}' `;
-        //console.log(queryIp);
-        /*
-        client.query(queryIp, function(err,rez){
-            //console.log(err, rez);
-            if (!err){
-                if(rez.rowCount>4)
-                    {res.send("<h1>Ia te rog sa fii cuminte, da?!</h1>");
-                    let ip_gasit=ipuri_blocate.find(function(elem){ return elem.ip==req.ip});
-                    if(!ip_gasit)
-                        ipuri_blocate.push({ip:req.ip, data:new Date()});
-                    //console.log("ipuri_blocate: ",ipuri_blocate);
-                    return;
-                    }
-        */
         ipuri_active[ipReq + "|" + req.url] = { nr: 1, data: timp_curent };
-        //console.log("am adaugat ", req.ip+"|"+req.url);
-        //console.log(ipuri_active);
 
 
     }
@@ -425,8 +407,8 @@ function getIp(req) { //pentru Heroku
 
 app.get(["/", "/index", "/home"], function(req, res) {
     var rezultat;
-    client.query("select username, nume, data_adaugare from utilizatori where id in (select distinct user_id from accesari where now() - data_accesare < interval '7 minutes' ) order by nume").then(function(rezultat) {
-        console.log("rezultat", rezultat.rows);
+    
+       
         var evenimente = []
         var locatie = "";
 
@@ -451,7 +433,7 @@ app.get(["/", "/index", "/home"], function(req, res) {
 
                 const data = new Date();
 
-                res.render("pagini/index", { evenimente: evenimente, oraServer: data.getHours(), locatie: locatie, utiliz_online: rezultat.rows, ip: getIp(req), imagini: obImagini.imagini, cale: obImagini.cale_galerie + "/", mesajLogin: req.session.mesajLogin });
+                res.render("pagini/index", { evenimente: evenimente, oraServer: data.getHours(), locatie: locatie, ip: getIp(req), imagini: obImagini.imagini, cale: obImagini.cale_galerie + "/", mesajLogin: req.session.mesajLogin });
                 req.session.mesajLogin = null;
 
             });
@@ -459,7 +441,6 @@ app.get(["/", "/index", "/home"], function(req, res) {
 
         //res.render("pagini/index", {evenimente: evenimente, locatie:locatie,utiliz_online: rezultat.rows, ip:req.ip,imagini:obImagini.imagini, cale:obImagini.cale_galerie, mesajLogin:req.session.mesajLogin});
 
-    }, function(err) { console.log("eroare", err) });
 
     // res.render("pagini/index",{ip:req.ip, imagini:obImagini.imagini, cale:obImagini.cale_galerie});//calea relativa la folderul views
 });
@@ -842,6 +823,30 @@ app.post("/sterge_utiliz", function(req, res) {
     }
     res.redirect("/useri");
 
+});
+
+app.post("/addEvent", function(req,res){ //TODO: test this.
+    var formular = new formidable.IncomingForm()
+    formular.parse(req, function(err, campuriText, campuriFisier) {
+        var comanda = `INSERT INTO public.events(
+            category, indoor, cost, description, image, name, starting)
+            VALUES ($1::text, $2::text, $3, $4::text, $5::text, $6::text, $7::text);`;
+
+            client.query(comanda, [campuriText.category, campuriText.indoor, campuriText.cost, campuriText.description, 
+                campuriText.image, campuriText.name, campuriText.starting], function(err, rez) {
+                // TO DO mesaj cu stergerea
+                if (err)
+                    console.log(err);
+                else {
+                    if (rez.rowCount > 0) {
+                        console.log("Introdus cu success");
+                    } else {
+                        console.log("Introducerea a esuat");
+                    }
+                }
+            });
+
+    });
 });
 
 
