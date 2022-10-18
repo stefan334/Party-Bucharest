@@ -835,6 +835,7 @@ app.post("/addEvent", function(req,res){ //TODO: test this.
             });
 
     });
+    res.redirect("/useri");
 });
 
 
