@@ -75,7 +75,7 @@ if (process.env.SITE_ONLINE) {
     });
 
 } else {
-    var client = new Client({ user: "ivan334", password: 'stefan334', host: 'localhost', port: 5432, database: 'magazin_haine' });
+    var client = new Client({ user: "ivan334", password: 'stefan334', host: 'localhost', port: 5432, database: 'party-bucharest' });
     protocol = "http://";
     numeDomeniu = "localhost:8080";
 }
@@ -148,17 +148,6 @@ setInterval(stergeAccesariVechi, 10 * 60 * 1000);
 
 
 
-cale_qr = "./Resources/Images/qrcode";
-if (fs.existsSync(cale_qr))
-    fs.rmSync(cale_qr, { force: true, recursive: true });
-fs.mkdirSync(cale_qr);
-client.query("select id from produse", function(err, rez) {
-    for (let prod of rez.rows) {
-        let cale_prod = protocol + numeDomeniu + "/produs/" + prod.id;
-        //console.log(cale_prod);
-        QRCode.toFile(cale_qr + "/" + prod.id + ".png", cale_prod);
-    }
-});
 
 
 
@@ -564,11 +553,11 @@ app.post("/inreg", function(req, res) {
         console.log("Email: ", campuriText.email);
 
         var eroare = "";
-        if (!campuriText.username)
+        if (!campuriText.username) 
             eroare += "Username-ul nu poate fi necompletat. ";
 
 
-        if (!campuriText.username.match("^[A-Za-z]{1}[A-Za-z0-9]{0,5}[0-9]{4}$"))
+        if (!campuriText.username.match("^[A-Za-z]{1}[A-Za-z0-9]{0,5}[0-9]{4}$"))//TODO: change this
             eroare += "Username-ul trebuie sa conțină maxim 10 caractere, să inceapă cu o literă și ultimele 4 caractere să fie cifre. ";
 
 
@@ -592,7 +581,7 @@ app.post("/inreg", function(req, res) {
                     var timestamp = Date.now();
                     token = timestamp + token;
 
-                    var queryUtiliz = `insert into utilizatori (username, nume, prenume, parola, email, culoare_chat, cod, imagine) values ('${campuriText.username}','${campuriText.nume}','${campuriText.prenume}', $1 ,'${campuriText.email}','${campuriText.culoareText}','${token}', '/Resources/poze_uploadate/${username}/poza.jpg')`;
+                    var queryUtiliz = `insert into utilizatori (username, nume, prenume, parola, email, cod, imagine) values ('${campuriText.username}','${campuriText.nume}','${campuriText.prenume}', $1 ,'${campuriText.email}','${token}', '/Resources/poze_uploadate/${username}/poza.jpg')`;
 
                     console.log(queryUtiliz, criptareParola);
                     client.query(queryUtiliz, [criptareParola], function(err, rez) {
@@ -665,7 +654,6 @@ app.post("/login", function(req, res) {
                         username: rez.rows[0].username,
                         nume: rez.rows[0].nume,
                         prenume: rez.rows[0].prenume,
-                        culoare_chat: rez.rows[0].culoare_chat,
                         email: rez.rows[0].email,
                         rol: rez.rows[0].rol,
                         imagine: rez.rows[0].imagine
@@ -830,7 +818,7 @@ app.post("/addEvent", function(req,res){ //TODO: test this.
     formular.parse(req, function(err, campuriText, campuriFisier) {
         var comanda = `INSERT INTO public.events(
             category, indoor, cost, description, image, name, starting)
-            VALUES ($1::text, $2::text, $3, $4::text, $5::text, $6::text, $7::text);`;
+            VALUES ($1::text, $2::boolean, $3, $4::text, $5::text, $6::text, $7::date);`;
 
             client.query(comanda, [campuriText.category, campuriText.indoor, campuriText.cost, campuriText.description, 
                 campuriText.image, campuriText.name, campuriText.starting], function(err, rez) {
