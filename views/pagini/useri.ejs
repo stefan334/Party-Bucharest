@@ -17,73 +17,78 @@
             <div class="maindivreg">
                 <div class="content">
                     <div class="afisaj">
-                        <h2>Useri</h2>
+                        <h2>Events</h2>
 
                         <table id="useri">
                             <tr>
                                 <th>id</th>
-                                <th>Username</th>
                                 <th>Nume</th>
-                                <th>Prenume</th>
-                                <th>Data</th>
-                                <th>Rol</th>
+                                <th>Category</th>
+                                <th>Indoor</th>
+                                <th>Cost</th>
+                                
                             </tr>
 
-                            <% for (var i = 0; i < useri.length; i++) { 
-				if(useri[i].rol=="comun"){
+                            <% for (var i = 0; i < events.length; i++) { 
+				
 				%>
                                 <tr>
                                     <td>
-                                        <%= useri[i].id %>
+                                        <%= events[i].id %>
                                     </td>
                                     <td>
-                                        <%= useri[i].username %>
+                                        <%= events[i].name %>
                                     </td>
                                     <td>
-                                        <%= useri[i].nume %>
+                                        <%= events[i].category %>
                                     </td>
                                     <td>
-                                        <%= useri[i].email %>
+                                        <%= events[i].indoor %>
                                     </td>
-                                    <%  
-					d=new Date(useri[i].data_adaugare)
-					sir_data=`${d.getDate()}/${d.getMonth()}/${d.getFullYear()} ${d.getHours()}:${d.getMinutes()}:${d.getSeconds()}`
-				  %>
-                                        <td>
-                                            <%=  sir_data %>
-                                        </td>
-                                        <td>
-                                            <%=  useri[i].rol %>
-                                        </td>
+                                    <td>
+                                        <%= events[i].cost %>
+                                    </td>
+                                  
+                                       
                                 </tr>
 
-                                <% } %>
+                               
                                     <% } %>
                         </table>
 
-                        <p>Reseteaza parola utilizatorului</p>
-                        <form id="sterge" method="post" action="/addEvent">
+                        <p>Adauga eveniment</p>
+                        <form id="addEvent" method="post" action="/addEvent">
                             <label>
                                 category: <input type="text" name="category" value="">
-			</label>
-            <label>
-				indoor: <input type="text" name="indoor" value="">
-			</label>
-            <label>
-				cost: <input type="text" name="cost" value="">
-			</label>
-            <label>
-				description: <input type="text" name="description" value="">
-			</label>
-            <label>
-				image: <input type="text" name="image" value="">
-			</label>
-            <label>
-				name: <input type="text" name="name" value="">
-			</label>
-            <label>
-				starting: <input type="text" name="starting" value="">
-			</label>
+                            </label>
+                            <label>
+                                indoor: <input type="text" name="indoor" value="">
+                            </label>
+                            <label>
+                                cost: <input type="text" name="cost" value="">
+                            </label>
+                            <label>
+                                description: <input type="text" name="description" value="">
+                            </label>
+                            <label>
+                                image: <input type="text" name="image" value="">
+                            </label>
+                            <label>
+                                name: <input type="text" name="name" value="">
+                            </label>
+                            <label>
+                                starting: <input type="text" name="starting" value="">
+                            </label>
+
+                            <input type="submit" value="Submit">
+                        </form>
+
+                        <p>Elimina eveniment</p>
+                        <form id="deleteEvent" method="post" action="/deleteEvent">
+                            <label>
+                                id: <input type="text" name="id_event" value="">
+                            </label>
+                        
 
                             <input type="submit" value="Submit">
                         </form>
