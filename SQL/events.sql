@@ -129,6 +129,15 @@ ALTER TABLE ONLY public.accesari ALTER COLUMN id SET DEFAULT nextval('public.acc
 
 ALTER TABLE ONLY public.utilizatori ALTER COLUMN id SET DEFAULT nextval('public.utilizatori_id_seq'::regclass);
 
+CREATE TABLE public.old_events
+(
+
+)
+    INHERITS (public.events);
+
+ALTER TABLE IF EXISTS public.old_events
+    OWNER to ivan334;
+
 
 INSERT INTO public.events(
 	category, indoor, cost, description, image, name, starting)

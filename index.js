@@ -753,10 +753,10 @@ app.get("/logout", function(req, res) {
 app.get('/useri', function(req, res) {
 
     if (req.session && req.session.utilizator && req.session.utilizator.rol == "admin") {
-        client.query("select * from utilizatori", function(err, rezultat) {
+        client.query("select * from events", function(err, rezultat) {
             if (err) throw err;
             //console.log(rezultat);
-            res.render('pagini/useri', { useri: rezultat.rows }); //afisez index-ul in acest caz
+            res.render('pagini/useri', { events: rezultat.rows }); //afisez index-ul in acest caz
         });
     } else {
         res.status(403).render('pagini/eroare', { mesaj: "Nu aveti acces" });
@@ -813,7 +813,7 @@ app.post("/sterge_utiliz", function(req, res) {
 
 });
 
-app.post("/addEvent", function(req,res){ //TODO: test this.
+app.post("/addEvent", function(req,res){ 
     var formular = new formidable.IncomingForm()
     formular.parse(req, function(err, campuriText, campuriFisier) {
         var comanda = `INSERT INTO public.events(
@@ -822,7 +822,6 @@ app.post("/addEvent", function(req,res){ //TODO: test this.
 
             client.query(comanda, [campuriText.category, campuriText.indoor, campuriText.cost, campuriText.description, 
                 campuriText.image, campuriText.name, campuriText.starting], function(err, rez) {
-                // TO DO mesaj cu stergerea
                 if (err)
                     console.log(err);
                 else {
@@ -839,7 +838,50 @@ app.post("/addEvent", function(req,res){ //TODO: test this.
 });
 
 
+app.post("/deleteEvent", function(req,res){
+    if (req.session && req.session.utilizator && req.session.utilizator.rol == "admin") {
+        var formular = new formidable.IncomingForm()
 
+        formular.parse(req, function(err, campuriText, campuriFisier) {
+            //var comanda=`delete from utilizatori where id=${campuriText.id_utiliz} and rol!='admin'`;
+
+            var comanda = `INSERT INTO old_events (id, category, indoor, cost, description, image, name, starting)
+            SELECT id, category, indoor, cost, description, image, name, starting
+            FROM events
+            WHERE id=$1;`
+            
+           var comanda2=  `DELETE FROM events
+            WHERE id=$1; `;
+            
+            client.query(comanda, [campuriText.id_event], function(err, rez) {
+                // TO DO mesaj cu stergerea
+                if (err)
+                    console.log(err);
+                else {
+                    if (rez.rowCount > 0) {
+                        console.log("Adaugat in old events cu succes");
+                    } else {
+                        console.log("Adaugat esuata");
+                    }
+                }
+            });
+            client.query(comanda2, [campuriText.id_event], function(err, rez) {
+                // TO DO mesaj cu stergerea
+                if (err)
+                    console.log(err);
+                else {
+                    if (rez.rowCount > 0) {
+                        console.log("Stergere din events cu succes");
+                    } else {
+                        console.log("Stergere esuata");
+                    }
+                }
+            });
+
+        });
+    }
+    res.redirect("/useri");
+});
 
 ///////////////////////////////////////////////////////////////////////////////////////////////
 //////////////// Contact
