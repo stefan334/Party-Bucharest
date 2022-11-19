@@ -11,14 +11,7 @@ const nodemailer = require('nodemailer');
 const session = require('express-session');
 const xmljs = require('xml-js');
 const request = require('request');
-const html_to_pdf = require('html-pdf-node');
-var QRCode = require('qrcode');
 const helmet = require('helmet');
-//schimbare aici
-
-
-
-
 
 
 var app = express();
@@ -29,8 +22,7 @@ app.set("view engine", "ejs");
 app.use(helmet.frameguard()); //pentru a nu se deschide paginile site-ului in frame-uri
 
 
-//pagini speciale pentru care cererile post nu se preiau cu formidable
-app.use(["/produse_cos", "/cumpara"], express.json({ limit: '2mb' })); //obligatoriu de setat pt request body de tip json
+
 //trec mai jos paginile cu cereri post pe care vreau sa le tratez cu req.body si nu cu formidable
 app.use(["/contact"], express.urlencoded({ extended: true }));
 
@@ -96,7 +88,7 @@ app.use(function(req, res, next) {
 
         if ((timp_curent - ip_gasit.data) < 20 * 1000) { //diferenta e in milisecunde; verific daca ultima accesare a fost pana in 10 secunde
             if (ip_gasit.nr > 10) { //mai mult de 10 cereri 
-                res.send("<h1>Prea multe cereri intr-un interval scurt. Ia te rog sa fii cuminte, da?!</h1>");
+                res.send("<h1>Prea multe cereri intr-un interval scurt.</h1>");
                 ip_gasit.data = timp_curent
                 return;
             } else {
@@ -105,9 +97,9 @@ app.use(function(req, res, next) {
                 ip_gasit.nr++;
             }
         } else {
-            //console.log("Resetez: ", req.ip+"|"+req.url, timp_curent-ip_gasit.data)
+            
             ip_gasit.data = timp_curent;
-            ip_gasit.nr = 1; //a trecut suficient timp de la ultima cerere; resetez
+            ip_gasit.nr = 1; 
         }
     } else {
 
@@ -116,10 +108,10 @@ app.use(function(req, res, next) {
 
     }
     let comanda_param = `insert into accesari(ip, user_id, pagina) values ($1::text, $2,  $3::text)`;
-    //console.log(comanda);
+    
     if (ipReq) {
         var id_utiliz = req.session.utilizator ? req.session.utilizator.id : null;
-        //console.log("id_utiliz", id_utiliz);
+        
         client.query(comanda_param, [ipReq, id_utiliz, req.url], function(err, rez) {
             if (err) console.log(err);
         });
@@ -129,13 +121,13 @@ app.use(function(req, res, next) {
 
 function stergeAccesariVechi() {
     let comanda = `delete from accesari where now() - data_accesare > interval '1440 minutes'`;
-    //console.log(comanda);
+  
     client.query(comanda, function(err, rez) {
         if (err) console.log(err);
     });
     let timp_curent = new Date();
     for (let ipa in ipuri_active) {
-        if (timp_curent - ipuri_active[ipa].data > 2 * 60 * 1000) { // daca sunt mai vechi de 2 minute le deblochez
+        if (timp_curent - ipuri_active[ipa].data > 2 * 60 * 1000) { 
             console.log("Am deblocat ", ipa);
             delete ipuri_active[ipa];
         }
@@ -154,7 +146,7 @@ setInterval(stergeAccesariVechi, 10 * 60 * 1000);
 
 
 app.get("/femei", function(req, res) {
-    //------galerie
+
     var conditie = `where 1=1 `;
     console.log(req.query.tip);
     if (req.query.tip) {
@@ -166,9 +158,6 @@ app.get("/femei", function(req, res) {
         res.render("pagini/femei.ejs", { produse: rez.rows });
         console.log("Am trimis");
     });
-
-
-
 
 });
 
@@ -184,45 +173,6 @@ app.get("/femei/:id", function(req, res) {
 
 });
 
-
-
-
-
-app.get("*/galerie_animata.css", function(req, res) {
-    console.log("MI A INTRAT IN galerieanimata");
-    res.setHeader("Content-Type", "text/css");
-    let sirScss = fs.readFileSync("./Resources/Css/galerie_animata.scss").toString("utf-8");
-    numarImagini = [4, 9, 16];
-    let numarRandom = numarImagini[Math.floor(Math.random() * numarImagini.length)];
-
-    console.log(numarRandom);
-    let rezScss = ejs.render(sirScss, { numarRandom: numarRandom });
-    fs.writeFileSync("./temp/galerie_animata.scss", rezScss);
-
-    let cale_css = path.join(__dirname, "temp", "galerie_animata.css");
-    let cale_scss = path.join(__dirname, "temp", "galerie_animata.scss");
-
-    sass.render({ file: cale_scss, sourceMap: true }, function(err, rezCompilare) {
-        console.log(rezCompilare);
-        if (err) {
-            console.log(`eroare: ${err.message}`);
-            res.end();
-            return;
-        }
-        fs.writeFileSync(cale_css, rezCompilare.css, function(err) {
-            if (err) { console.log(err); }
-        });
-        res.sendFile(cale_css);
-    });
-
-
-});
-
-app.get("*/galerie_animata.css.map", function(req, res) {
-    let cale = path.join(__dirname, "temp", "galerie_animata.css.map");
-    res.sendFile(cale);
-
-});
 
 app.use("/Resources", express.static(__dirname + "/Resources"));
 
@@ -261,124 +211,21 @@ function createImages() {
 function chooseImages() {
     var date = new Date();
     var today = Date.parse('01/01/2011 ' + date.getHours() + ':' + date.getMinutes());
-    // console.log("Asta e azi " + today);
     var timp1, timp2;
-    var imagini;
     for (let i = 0; i < obImagini.imagini.length; i++) {
 
         [timp1, timp2] = obImagini.imagini[i].timp.split("-");
-        // console.log(today + " " + Date.parse('01/01/2011 ' + timp1));
-        if (today >= Date.parse('01/01/2011 ' + timp1) && today <= Date.parse('01/01/2011 ' + timp2)) {
-            // console.log("Am intrat aicea");
-        } else {
-            // console.log("AM ELIMINAT UNUL");
+       
+        if (!(today >= Date.parse('01/01/2011 ' + timp1) && today <= Date.parse('01/01/2011 ' + timp2))) {
             obImagini.imagini.splice(i, 1);
             i--;
         }
-        // console.log("Aici am obimagini de i: " + obImagini.imagini[i]);
-
-
-
     }
 }
 createImages();
 chooseImages();
 
-async function trimitefactura(username, email, numefis) {
-    var transp = nodemailer.createTransport({
-        service: "yahoo",
-        secure: false,
-        auth: { //date login 
-            user: "nullshop334@yahoo.com",
-            pass: "hkpeqwfakxadyqhw"
-        },
-        tls: {
-            rejectUnauthorized: false
-        }
-    });
-    //genereaza html
-    await transp.sendMail({
-        from: "nullshop334@yahoo.com",
-        to: email,
-        subject: "Factură",
-        text: "Stimate " + username + ", aveți atașată factura",
-        html: "<h1>Salut!</h1><p>Stimate " + username + ", aveți atașată factura</p>",
-        attachments: [{ // utf-8 string as an attachment
-            filename: 'factura.pdf',
-            content: fs.readFileSync(numefis)
-        }]
-    })
-    console.log("trimis mail");
-}
 
-
-
-
-
-app.post("/produse_cos", function(req, res) {
-
-    //console.log("req.body: ",req.body);
-    //console.log(req.get("Content-type"));
-    //console.log("body: ",req.get("body"));
-
-    /* prelucrare pentru a avea toate id-urile numerice si pentru a le elimina pe cele care nu sunt numerice */
-    var iduri = []
-    for (let elem of req.body.ids_prod) {
-        let num = parseInt(elem);
-        if (!isNaN(num)) //daca este numar
-            iduri.push(num);
-    }
-    if (iduri.length == 0) {
-        res.send("eroare");
-        return;
-    }
-
-    //console.log("select id, nume, pret, gramaj, calorii, categorie, imagine from prajituri where id in ("+iduri+")");
-    client.query("select id, name, description, price, imag, category, size, stock, added_on, color, materials, is_imported from produse where id in (" + iduri + ")", function(err, rez) {
-        //console.log(err, rez);
-        //console.log(rez.rows);
-        res.send(rez.rows);
-
-
-    });
-
-
-});
-
-
-app.post("/cumpara", function(req, res) {
-    if (!req.session.utilizator) {
-        res.write("Nu puteti cumpara daca nu sunteti logat!");
-        res.end();
-        return;
-    }
-    console.log("SELECT id, name, description, price, imag, category, size, stock, added_on, color, materials, is_imported from produse where id in (" + req.body.ids_prod + ")");
-    client.query("SELECT id, name, description, price, imag, category, size, stock, added_on, color, materials, is_imported from produse where id in (" + req.body.ids_prod + ")", function(err, rez) {
-        //console.log(err, rez);
-        //console.log(rez.rows);
-
-        let rezFactura = ejs.render(fs.readFileSync("views/pagini/factura.ejs").toString("utf8"), { utilizator: req.session.utilizator, produse: rez.rows, protocol: protocol, domeniu: numeDomeniu });
-        //console.log(rezFactura);
-        let options = { format: 'A4', args: ['--no-sandbox'] };
-
-        let file = { content: rezFactura };
-
-        html_to_pdf.generatePdf(file, options).then(function(pdf) {
-            if (!fs.existsSync("./temp"))
-                fs.mkdirSync("./temp");
-            var numefis = "./temp/test" + (new Date()).getTime() + ".pdf";
-            fs.writeFileSync(numefis, pdf);
-            trimitefactura(req.session.utilizator.username, req.session.utilizator.email, numefis);
-            res.write("Totu bine!");
-            res.end();
-        });
-
-
-
-    });
-
-
-});
 
 function getIp(req) { //pentru Heroku
     var ip = req.headers["x-forwarded-for"];
@@ -394,10 +241,7 @@ function getIp(req) { //pentru Heroku
 
 
 
-app.get(["/", "/index", "/home"], function(req, res) {
-    var rezultat;
-    
-       
+app.get(["/", "/index", "/home"], function(req, res) {   
         var evenimente = []
         var locatie = "";
 
@@ -405,12 +249,8 @@ app.get(["/", "/index", "/home"], function(req, res) {
             function(error, response, body) {
                 if (error) { console.error('error:', error) } else {
                     var obiectLocatie = JSON.parse(body);
-                    //console.log(obiectLocatie);
                     locatie = obiectLocatie.geobytescountry + " " + obiectLocatie.geobytesregion
                 }
-
-                //generare evenimente random pentru calendar 
-
                 var texteEvenimente = ["Eveniment important", "Festivitate", "Promotie", "Reduceri"];
                 dataCurenta = new Date();
                 for (i = 0; i < texteEvenimente.length; i++) {
@@ -427,24 +267,9 @@ app.get(["/", "/index", "/home"], function(req, res) {
 
             });
 
-
-        //res.render("pagini/index", {evenimente: evenimente, locatie:locatie,utiliz_online: rezultat.rows, ip:req.ip,imagini:obImagini.imagini, cale:obImagini.cale_galerie, mesajLogin:req.session.mesajLogin});
-
-
-    // res.render("pagini/index",{ip:req.ip, imagini:obImagini.imagini, cale:obImagini.cale_galerie});//calea relativa la folderul views
 });
 
 
-
-
-app.get("/gallery", function(req, res) {
-    console.log(req.url);
-    //------galerie
-
-
-    res.render("pagini/gallery.ejs", { imagini: obImagini.imagini, cale: obImagini.cale_galerie + "/" });
-
-});
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //////////////////// Administrarea utilizatorilor (inregistrare, login, logout, update profil)
@@ -459,9 +284,6 @@ for (let interval of v_intervale) {
     for (let i = interval[0]; i <= interval[1]; i++)
         sirAlphaNum += String.fromCharCode(i);
 }
-console.log(sirAlphaNum);
-
-
 
 function genereazaToken(lungime) {
     sirAleator = "";
@@ -557,18 +379,13 @@ app.post("/inreg", function(req, res) {
             eroare += "Username-ul nu poate fi necompletat. ";
 
 
-        if (!campuriText.username.match("^[A-Za-z]{1}[A-Za-z0-9]{0,5}[0-9]{4}$"))//TODO: change this
-            eroare += "Username-ul trebuie sa conțină maxim 10 caractere, să inceapă cu o literă și ultimele 4 caractere să fie cifre. ";
-
-
+        if (!campuriText.username.match("^(?=.*[0-9])(?=.*[a-z]).{8,32}$"))//TODO: change this
+            eroare += "Username-ul trebuie sa conțină minim 8 caractere, sa aiba minim o cifra si minim un caracter lowercase";
         if (eroare != "") {
             res.render("pagini/inregistrare", { err: eroare });
             return;
         }
-
         queryVerifUtiliz = ` select * from utilizatori where username= '${campuriText.username}' `;
-        console.log(queryVerifUtiliz)
-
         client.query(queryVerifUtiliz, function(err, rez) {
             if (err) {
                 console.log(err);
@@ -613,8 +430,8 @@ app.post("/inreg", function(req, res) {
         if (!fs.existsSync(folderUtilizator)) {
             fs.mkdirSync(folderUtilizator);
             v = fisier.originalFilename.split(".");
-            fisier.filepath = folderUtilizator + "poza." + v[v.length - 1]; //setez calea de upload
-            //fisier.filepath=folderUtilizator+fisier.originalFilename;
+            fisier.filepath = folderUtilizator + "poza." + v[v.length - 1]; 
+          
         }
 
     })
@@ -659,13 +476,12 @@ app.post("/login", function(req, res) {
                         imagine: rez.rows[0].imagine
                     }
                 }
-                // res.render("pagini"+req.url);
+              
                 res.redirect("/index");
             } else {
                 req.session.mesajLogin = "Login esuat";
                 res.redirect("/index");
-                //res.render("pagini/index",{ip:req.ip, imagini:obImagini.imagini, cale:obImagini.cale_galerie,mesajLogin:"Login esuat"});
-            }
+           }
 
         });
 
@@ -729,12 +545,12 @@ app.post("/profil", function(req, res) {
             fs.mkdirSync(folderUtilizator);
             v = fisier.originalFilename.split(".");
             fisier.filepath = folderUtilizator + "poza." + v[v.length - 1]; //setez calea de upload
-            //fisier.filepath=folderUtilizator+fisier.originalFilename;
+         
         }
 
     })
-    formular.on("file", function(nume, fisier) { //3
-        //s-a terminat de uploadat
+    formular.on("file", function(nume, fisier) { 
+        
         console.log("fisier uploadat");
     });
 });
@@ -755,8 +571,8 @@ app.get('/useri', function(req, res) {
     if (req.session && req.session.utilizator && req.session.utilizator.rol == "admin") {
         client.query("select * from events", function(err, rezultat) {
             if (err) throw err;
-            //console.log(rezultat);
-            res.render('pagini/useri', { events: rezultat.rows }); //afisez index-ul in acest caz
+           
+            res.render('pagini/useri', { events: rezultat.rows });
         });
     } else {
         res.status(403).render('pagini/eroare', { mesaj: "Nu aveti acces" });
@@ -772,8 +588,7 @@ app.post("/sterge_utiliz", function(req, res) {
         var formular = new formidable.IncomingForm()
 
         formular.parse(req, function(err, campuriText, campuriFisier) {
-            //var comanda=`delete from utilizatori where id=${campuriText.id_utiliz} and rol!='admin'`;
-
+          
             var token = genereazaToken(7);
             var criptareParola = crypto.scryptSync(token, parolaCriptare, 32).toString('hex');
 
@@ -843,7 +658,7 @@ app.post("/deleteEvent", function(req,res){
         var formular = new formidable.IncomingForm()
 
         formular.parse(req, function(err, campuriText, campuriFisier) {
-            //var comanda=`delete from utilizatori where id=${campuriText.id_utiliz} and rol!='admin'`;
+        
 
             var comanda = `INSERT INTO old_events (id, category, indoor, cost, description, image, name, starting)
             SELECT id, category, indoor, cost, description, image, name, starting
